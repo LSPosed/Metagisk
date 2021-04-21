@@ -56,7 +56,7 @@ object ServiceLocator {
                 HomeViewModel::class.java -> HomeViewModel(networkService)
                 LogViewModel::class.java -> LogViewModel(logRepo)
                 SuperuserViewModel::class.java -> SuperuserViewModel(policyDB)
-                InstallViewModel::class.java -> InstallViewModel(networkService)
+                InstallViewModel::class.java -> InstallViewModel(context.resources)
                 SuRequestViewModel::class.java -> SuRequestViewModel(policyDB, timeoutPrefs)
                 else -> clz.newInstance()
             } as T
