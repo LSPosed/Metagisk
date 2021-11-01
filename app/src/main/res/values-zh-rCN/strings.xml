@@ -151,6 +151,7 @@
     <string name="settings_denylist_title">遵守排除列表</string>
     <string name="settings_denylist_summary">Magisk 不会修改列表中的进程</string>
     <string name="settings_denylist_error">此功能需要先启用 %1$s</string>
+    <string name="settings_denylist_error2">此功能与 %1$s 不可共存</string>
     <string name="settings_denylist_config_title">配置排除列表</string>
     <string name="settings_denylist_config_summary">选择加入排除列表的进程</string>
     <string name="settings_hosts_title">Systemless hosts</string>

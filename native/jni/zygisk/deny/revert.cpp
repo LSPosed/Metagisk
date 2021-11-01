@@ -12,9 +12,24 @@ static void lazy_unmount(const char* mountpoint) {
         LOGD("denylist: Unmounted (%s)\n", mountpoint);
 }
 
+void revert_daemon(int pid) {
+    if (fork_dont_care() == 0) {
+        revert_unmount(pid);
+        // Send resume signal
+        kill(pid, SIGCONT);
+        _exit(0);
+    }
+}
+
 #define TMPFS_MNT(dir) (mentry->mnt_type == "tmpfs"sv && str_starts(mentry->mnt_dir, "/" #dir))
 
-void revert_unmount() {
+void revert_unmount(int pid) {
+    if (pid > 0) {
+        if (switch_mnt_ns(pid))
+            return;
+        LOGD("denylist: handling PID=[%d]\n", pid);
+    }
+
     vector<string> targets;
 
     // Unmount dummy skeletons and MAGISKTMP

@@ -151,6 +151,7 @@
     <string name="settings_denylist_title">Enforce DenyList</string>
     <string name="settings_denylist_summary">Processes on the denylist will have all Magisk modifications reverted</string>
     <string name="settings_denylist_error">This feature requires %1$s to be enabled</string>
+    <string name="settings_denylist_error2">This feature does not coexist with %1$s</string>
     <string name="settings_denylist_config_title">Configure DenyList</string>
     <string name="settings_denylist_config_summary">Select the processes to be included on the denylist</string>
     <string name="settings_hosts_title">Systemless hosts</string>

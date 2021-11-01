@@ -354,6 +354,8 @@ void boot_complete(int client) {
     if (access(SECURE_DIR, F_OK) != 0)
         xmkdir(SECURE_DIR, 0700);
 
+    reset_sensitive_props();
+
     if (!get_manager()) {
         if (access(MANAGERAPK, F_OK) == 0) {
             // Only try to install APK when no manager is installed

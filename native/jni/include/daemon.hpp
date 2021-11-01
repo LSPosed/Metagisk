@@ -75,3 +75,4 @@ std::vector<int> zygisk_module_fds(bool is_64_bit);
 void initialize_denylist();
 int disable_deny();
 int denylist_cli(int argc, char **argv);
+void reset_sensitive_props();

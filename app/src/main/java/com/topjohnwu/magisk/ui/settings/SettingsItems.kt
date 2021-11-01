@@ -22,6 +22,7 @@ import com.topjohnwu.magisk.databinding.DialogSettingsDownloadPathBinding
 import com.topjohnwu.magisk.databinding.DialogSettingsUpdateChannelBinding
 import com.topjohnwu.magisk.databinding.set
 import com.topjohnwu.magisk.di.AppContext
+import com.topjohnwu.magisk.utils.TextHolder
 import com.topjohnwu.magisk.utils.Utils
 import com.topjohnwu.magisk.utils.asText
 import com.topjohnwu.superuser.Shell
@@ -230,23 +231,24 @@ object Zygisk : BaseSettingsItem.Toggle() {
     override var value = Config.zygisk
         set(value) = setV(value, field, { field = it }) {
             Config.zygisk = it
-            DenyList.isEnabled = it
-            DenyListConfig.isEnabled = it
+            DenyList.notifyPropertyChanged(BR.title)
             DenyList.notifyPropertyChanged(BR.description)
         }
     val mismatch get() = value != Info.isZygiskEnabled
 }
 
 object DenyList : BaseSettingsItem.Toggle() {
-    override val title = R.string.settings_denylist_title.asText()
+    override val title get() =
+        if (Config.zygisk) R.string.settings_denylist_title.asText()
+        else TextHolder.String("MagiskHide")
     override val description get() =
-        if (isEnabled) {
+        if (Config.zygisk) {
             if (Zygisk.mismatch)
                 R.string.reboot_apply_change.asText()
             else
                 R.string.settings_denylist_summary.asText()
         } else {
-            R.string.settings_denylist_error.asText(R.string.zygisk.asText())
+            R.string.settings_denylist_error2.asText(R.string.zygisk.asText())
         }
 
     override var value = Config.denyList
@@ -258,17 +260,13 @@ object DenyList : BaseSettingsItem.Toggle() {
             }
             DenyListConfig.isEnabled = it
         }
-
-    override fun refresh() {
-        isEnabled = Zygisk.value
-    }
 }
 
 object DenyListConfig : BaseSettingsItem.Blank() {
     override val title = R.string.settings_denylist_config_title.asText()
     override val description = R.string.settings_denylist_config_summary.asText()
     override fun refresh() {
-        isEnabled = Zygisk.value
+        isEnabled = Config.denyList
     }
 }
 

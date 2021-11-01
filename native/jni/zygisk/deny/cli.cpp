@@ -62,7 +62,7 @@ void denylist_handler(int client, const sock_cred *cred) {
         ls_list(client);
         return;
     case DENY_STATUS:
-        res = (zygisk_enabled && denylist_enabled) ? DENY_IS_ENFORCED : DENY_NOT_ENFORCED;
+        res = (denylist_enabled) ? DENY_IS_ENFORCED : DENY_NOT_ENFORCED;
         break;
     }
 

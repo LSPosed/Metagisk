@@ -24,8 +24,6 @@ static pthread_mutex_t data_lock = PTHREAD_MUTEX_INITIALIZER;
 atomic<bool> denylist_enabled = false;
 
 static void rebuild_map() {
-    if (!zygisk_enabled)
-        return;
     app_id_proc_map->clear();
     string data_path(APP_DATA_DIR);
     size_t len = data_path.length();
@@ -70,8 +68,7 @@ static void rebuild_map() {
 // Leave /proc fd opened as we're going to read from it repeatedly
 static DIR *procfp;
 
-template<class F>
-static void crawl_procfs(F &&fn) {
+void crawl_procfs(const std::function<bool(int)> &fn) {
     rewinddir(procfp);
     dirent *dp;
     int pid;
@@ -148,8 +145,6 @@ static bool validate(const char *pkg, const char *proc) {
 static void add_hide_set(const char *pkg, const char *proc) {
     LOGI("denylist add: [%s/%s]\n", pkg, proc);
     deny_set->emplace(pkg, proc);
-    if (!zygisk_enabled)
-        return;
     if (strcmp(pkg, ISOLATED_MAGIC) == 0) {
         // Kill all matching isolated processes
         kill_process<&str_starts>(proc, true);
@@ -241,7 +236,7 @@ static bool init_list() {
     db_err_cmd(err, return false);
 
     // If Android Q+, also kill blastula pool and all app zygotes
-    if (SDK_INT >= 29 && zygisk_enabled) {
+    if (SDK_INT >= 29) {
         kill_process("usap32", true);
         kill_process("usap64", true);
         kill_process<&str_ends_safe>("_zygote", true);
@@ -288,6 +283,14 @@ static void inotify_handler(pollfd *pfd) {
     }
 }
 
+static int new_daemon_thread(void(*entry)()) {
+    thread_entry proxy = [](void *entry) -> void * {
+        reinterpret_cast<void(*)()>(entry)();
+        return nullptr;
+    };
+    return new_daemon_thread(proxy, (void *) entry);
+}
+
 int enable_deny() {
     if (denylist_enabled) {
         return DAEMON_SUCCESS;
@@ -313,17 +316,20 @@ int enable_deny() {
 
         denylist_enabled = true;
 
-        if (zygisk_enabled) {
-            default_new(app_id_proc_map);
-            rebuild_map();
+        default_new(app_id_proc_map);
+        rebuild_map();
 
-            inotify_fd = xinotify_init1(IN_CLOEXEC);
-            if (inotify_fd >= 0) {
-                // Monitor packages.xml
-                inotify_add_watch(inotify_fd, "/data/system", IN_CLOSE_WRITE);
-                pollfd inotify_pfd = { inotify_fd, POLLIN, 0 };
-                register_poll(&inotify_pfd, inotify_handler);
-            }
+        inotify_fd = xinotify_init1(IN_CLOEXEC);
+        if (inotify_fd >= 0) {
+            // Monitor packages.xml
+            inotify_add_watch(inotify_fd, "/data/system", IN_CLOSE_WRITE);
+            pollfd inotify_pfd = {inotify_fd, POLLIN, 0};
+            register_poll(&inotify_pfd, inotify_handler);
+        }
+
+        if (!zygisk_enabled) {
+            if (new_daemon_thread(&proc_monitor))
+                return DAEMON_ERROR;
         }
     }
 
@@ -335,6 +341,10 @@ int disable_deny() {
     if (denylist_enabled) {
         denylist_enabled = false;
         LOGI("* Disable DenyList\n");
+
+        if (!zygisk_enabled) {
+            pthread_kill(monitor_thread, SIGTERMTHRD);
+        }
 
         mutex_guard lock(data_lock);
         delete app_id_proc_map;
@@ -357,7 +367,13 @@ void initialize_denylist() {
     }
 }
 
-bool is_deny_target(int uid, string_view process) {
+void reset_sensitive_props() {
+    if (!zygisk_enabled && denylist_enabled) {
+        hide_sensitive_props();
+    }
+}
+
+bool is_deny_target(int uid, string_view process, int max_len) {
     mutex_guard lock(data_lock);
 
     int app_id = to_app_id(uid);
@@ -368,6 +384,8 @@ bool is_deny_target(int uid, string_view process) {
             return false;
 
         for (const auto &s : it->second) {
+            if (s.length() > max_len && process.length() > max_len && str_starts(s, process))
+                return true;
             if (str_starts(process, s))
                 return true;
         }
@@ -377,6 +395,8 @@ bool is_deny_target(int uid, string_view process) {
             return false;
 
         for (const auto &s : it->second) {
+            if (s.length() > max_len && process.length() > max_len && str_starts(s, process))
+                return true;
             if (s == process)
                 return true;
         }
