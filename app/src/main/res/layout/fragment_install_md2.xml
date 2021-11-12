@@ -217,19 +217,18 @@
                 gone="@{viewModel.notes.empty}"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/l1"
                 android:layout_marginStart="@dimen/l1"
+                android:layout_marginTop="@dimen/l1"
                 android:layout_marginEnd="@dimen/l1"
                 android:focusable="false">
 
                 <TextView
                     android:id="@+id/release_notes"
-                    markdownText="@{viewModel.notes}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="15dp"
+                    android:text="@{viewModel.notes}"
                     android:textAppearance="@style/AppearanceFoundation.Caption"
-                    android:visibility="gone"
                     tools:maxLines="5"
                     tools:text="@tools:sample/lorem/random"
                     tools:visibility="visible" />
