@@ -87,6 +87,7 @@ class AppShellInit : BaseShellInit() {
         Const.MAGISKTMP = getVar("MAGISKTMP")
         Info.isSAR = getBool("SYSTEM_ROOT")
         Info.ramdisk = getBool("RAMDISKEXIST")
+        Info.vbmeta = getBool("VBMETAEXIST")
         Info.isAB = getBool("ISAB")
         Info.crypto = getVar("CRYPTOTYPE")
 
@@ -94,6 +95,7 @@ class AppShellInit : BaseShellInit() {
         Config.recovery = getBool("RECOVERYMODE")
         Config.keepVerity = getBool("KEEPVERITY")
         Config.keepEnc = getBool("KEEPFORCEENCRYPT")
+        Config.keepVbmeta = getBool("KEEPVBMETAFLAG")
 
         return true
     }
