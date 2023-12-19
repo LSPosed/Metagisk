@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: daily
+    target-branch: master
+    registries:
+      - maven-google
+      - gradle-plugin
+    groups:
+      maven-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: master
+    groups:
+      submodules:
+        patterns:
+          - "*"
+registries:
+  maven-google:
+    type: maven-repository
+    url: "https://dl.google.com/dl/android/maven2/"
+  gradle-plugin:
+    type: maven-repository
+    url: "https://plugins.gradle.org/m2/"
