@@ -566,6 +566,17 @@ def setup_avd():
     if proc.returncode != 0:
         error("avd_magisk.sh failed!")
 
+def setup_emu():
+    if not args.skip:
+        build_all()
+
+    header("* Setting up emulator")
+
+    push_files(Path("scripts", "setup_emu.sh"))
+
+    proc = execv([adb_path, "shell", "sh", "/data/local/tmp/setup_emu.sh"])
+    if proc.returncode != 0:
+        error("setup_emu.sh failed!")
 
 def patch_avd_file():
     if not args.skip:
@@ -731,6 +742,11 @@ def parse_args():
         "-s", "--skip", action="store_true", help="skip building binaries and the app"
     )
 
+    system_parser = subparsers.add_parser("system", help="setup to system partition in emulator for development")
+    system_parser.add_argument(
+    "-s", "--skip", action="store_true", help="skip building binaries and the app"
+    )
+
     avd_patch_parser = subparsers.add_parser(
         "avd_patch", help="patch AVD ramdisk.img or init_boot.img"
     )
@@ -758,6 +774,7 @@ def parse_args():
     app_parser.set_defaults(func=build_app)
     stub_parser.set_defaults(func=build_stub)
     emu_parser.set_defaults(func=setup_avd)
+    system_parser.set_defaults(func=setup_emu)
     avd_patch_parser.set_defaults(func=patch_avd_file)
     clean_parser.set_defaults(func=cleanup)
     ndk_parser.set_defaults(func=setup_ndk)
