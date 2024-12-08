@@ -55,11 +55,11 @@ for file in lib*.so; do
   mv "$file" "$INSTALL_PATH/${file:3:${#file}-6}"
 done
 
-#if $IS64BIT && [ -e "/system/bin/linker" ]; then
-#  unzip -oj magisk.apk "lib/$ABI32/libmagisk.so"
-#  chmod 755 libmagisk.so
-#  mv libmagisk.so $INSTALL_PATH/magisk32
-#fi
+if $IS64BIT && [ -e "/system/bin/linker" ]; then
+  unzip -oj magisk.apk "lib/$ABI32/libmagisk.so"
+  chmod 755 libmagisk.so
+  mv libmagisk.so $INSTALL_PATH/magisk32
+fi
 
 # Magisk stuff
 if [ ! -d /data/adb ]; then
@@ -121,8 +121,8 @@ on post-fs-data
     chmod 0755 $MAGISKTMP/magisk
     symlink ./magisk $MAGISKTMP/su
     symlink ./magisk $MAGISKTMP/resetprop
-#    copy $INSTALL_PATH/magisk32 $MAGISKTMP/magisk32
-#    chmod 0755 $MAGISKTMP/magisk32
+    copy $INSTALL_PATH/magisk32 $MAGISKTMP/magisk32
+    chmod 0755 $MAGISKTMP/magisk32
     copy $INSTALL_PATH/magiskpolicy $MAGISKTMP/magiskpolicy
     chmod 0755 $MAGISKTMP/magiskpolicy
     symlink ./magiskpolicy $MAGISKTMP/supolicy
